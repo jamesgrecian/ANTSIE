@@ -31,6 +31,9 @@
 ### Set up query ###
 ####################
 
+# remotes::install_github("eliocamp/rcmip6")
+require(rcmip6)
+
 # initially focus on MIROC-ES2L
 # this has several products for lgm and holocene - many other modelling groups have not run this
 # five variables from one model and three scenarios
