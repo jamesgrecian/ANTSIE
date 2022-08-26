@@ -2,6 +2,7 @@
 
 # Data
 
-Download from esgf portal using rcmip6 package
+Download from ESGF \[portal\]
+(<https://esgf-node.llnl.gov/search/cmip6/>) using the `rcmip6` package
 
 Process netcdf files using cdo in terminal
