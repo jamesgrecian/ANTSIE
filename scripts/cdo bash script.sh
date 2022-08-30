@@ -28,7 +28,7 @@ cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 # process netcdf files from MPI-ESM1-2-LR for salinity
-cd ~/Dropbox/git_projects/ANTSIE/data/CMIP6/PMIP/MPI-M/MPI-ESM1-2-LR/lgm/r1i1p1f1/Omon/sos/gn/20190710/
+cd /Volumes/Nifty\ 128/ANTSIE\ data/CMIP6/PMIP/MPI-M/MPI-ESM1-2-LR/lgm/r1i1p1f1/Omon/sos/gn/20190710/
 
 for i in *.nc;
 do
@@ -121,7 +121,7 @@ done
 ### Sea Ice Concentration ###
 #############################
 
-# process netcdf files from AWI-ESM-1-1-LR for sea surface height
+# process netcdf files from AWI-ESM-1-1-LR for sea ice concentration
 cd /Volumes/Nifty\ 128/ANTSIE\ data/CMIP6/PMIP/AWI/AWI-ESM-1-1-LR/lgm/r1i1p1f1/SImon/siconc/gn/20200212/
 
 # loop through .nc files
@@ -132,7 +132,7 @@ echo $i
 cdo remapycon,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
-# process netcdf files from MIROC-ES2L for sea surface height
+# process netcdf files from MIROC-ES2L for sea ice concentration
 # use rempabil everywhere else
 cd /Volumes/Nifty\ 128/ANTSIE\ data/CMIP6/PMIP/MIROC/MIROC-ES2L/lgm/r1i1p1f2/SImon/siconc/gn/20191002/
 
@@ -143,7 +143,7 @@ cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 
-# process netcdf files from MPI-ESM1-2-LR for sea surface height
+# process netcdf files from MPI-ESM1-2-LR for sea ice concentration
 cd /Volumes/Nifty\ 128/ANTSIE\ data/CMIP6/PMIP/MPI-M/MPI-ESM1-2-LR/lgm/r1i1p1f1/SImon/siconc/gn/20190710/
 
 for i in *.nc;
@@ -156,7 +156,7 @@ done
 ### Mixed Layer Depth ###
 #########################
 
-# process netcdf files from AWI-ESM-1-1-LR for sea surface height
+# process netcdf files from AWI-ESM-1-1-LR for mixed layer depth
 cd /Volumes/Nifty\ 128/ANTSIE\ data/CMIP6/PMIP/AWI/AWI-ESM-1-1-LR/lgm/r1i1p1f1/Omon/mlotst/gn/20200212/
 
 # loop through .nc files
@@ -167,7 +167,7 @@ echo $i
 cdo remapycon,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
-# process netcdf files from MPI-ESM1-2-LR for sea surface height
+# process netcdf files from MPI-ESM1-2-LR for mixed layer depth
 cd /Volumes/Nifty\ 128/ANTSIE\ data/CMIP6/PMIP/MPI-M/MPI-ESM1-2-LR/lgm/r1i1p1f1/Omon/mlotst/gn/20190710/
 
 for i in *.nc;
