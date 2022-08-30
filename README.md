@@ -4,7 +4,7 @@
 has not yet been a stable, usable release suitable for the
 public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 
-# ANTSIE <img src="logo_small.png" align="right" />
+# ANTSIE <img src="logo_small.png" align="right" height="200" />
 
 This repo contains code for the analysis of Antarctic prey distributions
 as part of the ANTSIE project
