@@ -7,4 +7,4 @@ using the `rcmip6` package
 
 Process netcdf files using [Climate Data
 Operators](https://code.mpimet.mpg.de/projects/cdo) bash script
-[here](scripts/cdo\bash\script.sh)
+[here](scripts/cdo%20bash%20script.sh)
