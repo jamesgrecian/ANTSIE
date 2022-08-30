@@ -4,7 +4,12 @@
 has not yet been a stable, usable release suitable for the
 public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 
+![](logo_small.png)
+
 # ANTSIE
 
 This repo contains code for the analysis of Antarctic prey distributions
 as part of the ANTSIE project
+
+For more details of the project see:
+<https://antsie.webspace.durham.ac.uk>
