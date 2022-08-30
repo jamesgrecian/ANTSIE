@@ -11,14 +11,11 @@ output:
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "README-",
-  fig.align = "right"
+  fig.path = "README-"
 )
 ```
 
-![](logo_small.png)
-
-# ANTSIE
+# ANTSIE <img src="logo_small.png" align="right" />
 
 This repo contains code for the analysis of Antarctic prey distributions as part of the ANTSIE project
 
