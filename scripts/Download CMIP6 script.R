@@ -20,47 +20,44 @@
 
 # tos - temperature at surface
 # sos - salinity at surface
-# O2os - surface dissolved oxygen concentration
-# intpp - Primary Organic Carbon Production by All Types of Phytoplankton
+# zos - sea surface height
 # siconc - sea ice area fraction (concentration)
-
-# o2 - mean dissolved oxygen concentration through water column - then pull 200m
-# mlotst - could use Ocean Mixed Layer Thickness Defined by Sigma T instead of trying to extract 200m contour for o2 and temperature?
+# mlotst - mixed layer depth
 
 ####################
 ### Set up query ###
 ####################
 
-# remotes::install_github("eliocamp/rcmip6")
+#remotes::install_github("eliocamp/rcmip6", force = T)
 require(rcmip6)
+require(tidyverse)
 
-# initially focus on MIROC-ES2L
-# this has several products for lgm and holocene - many other modelling groups have not run this
-# five variables from one model and three scenarios
+# initially focus on Last Glacial Maximum
 query <- list(
   type          = "Dataset",
-  source_id     = "MIROC-ES2L",
-  grid_label    = "gr1",
-  experiment_id = c("lgm", "holocene", "historical"),
-  variable_id   = c("tos", "sos", "o2os", "intpp", "siconc"),
+  experiment_id = "lgm",
+  variable_id   = c("tos", "sos", "zos", "siconc", "mlotst"),
   replica       = "false",
   latest        = "true",
   project       = "CMIP6",
   frequency     = "mon",                          
-  table_id      = c("Omon", "SImon"),
-  member_id     = "r1i1p1f2"
+  table_id      = c("Omon", "SImon")
 )
 
 # check for availability on portal
 results <- cmip_search(query)
-as.data.frame(results)[,1:14]
 
-# download products
-cmip_root_set("data/")             # specify root directory
+# output summary table
+df <- cmip_simplify(results) %>% tibble() %>% dplyr::select(source_id, experiment_id, member_id, variable_id, grid_label, nominal_resolution)
+df <- df %>% pivot_wider(names_from = variable_id, values_from = variable_id, values_fill = list(variable_id = NA))
+df %>% arrange(source_id)
+
+# download files required
+cmip_root_set("/Volumes/Nifty 128/ANTSIE data/") # specify root directory
 options(timeout = 1200)            # downloading from server so specify how long to keep connection open (will fail if not defined)
 files <- cmip_download(results)    # trigger download
 
-# check products stored locally
-foo <- cmip_available(root = cmip_root_get()) %>% as_tibble
+# files will be in various scripts
+# reprocess to regular 1x1 degree grid using cdo bash script
 
 # ends
