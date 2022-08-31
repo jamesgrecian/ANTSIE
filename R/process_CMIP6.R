@@ -42,10 +42,6 @@ process_lgm <- function(path, project = T){
 }
 
 
-
-
-
-
 # generate austral summer mean of product from CMIP historical run
 process_hist <- function(path){
   
