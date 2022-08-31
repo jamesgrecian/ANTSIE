@@ -3,7 +3,7 @@
 #############################################
 
 # generate austral summer mean of product from PMIP lgm run
-process_lgm <- function(path){
+process_lgm <- function(path, project = T){
   # lgm files just need seasonal averages extracted
   # lgm files have data for 100 years * 12 months = 1200 layers
   # generate austral summer index - October to March
@@ -16,21 +16,35 @@ process_lgm <- function(path){
   index <- sort(index)
   
   # process...
-  lgm <- stack(path)  # load data
-  lgm <- subset(lgm, index) # subset raster stack of 1200 months to only austral summer
-  lgm <- calc(lgm, mean) # calculate seasonal mean
+  # loop to retain dates for checking
+  lgm <- raster::stack()
+  for(i in 1:length(path)){
+    lgm <- raster::stack(lgm, raster::stack(path[i]))
+  }
   
-  # rotate and crop
-  lgm <- rotate(lgm) # convert from 0-360 to -180-180
-  lgm <- crop(lgm, extent(-180, 180, -90, -30)) # crop to southern hemisphere and then plot
+  cat("object contains", raster::nlayers(lgm), "data layers\n")
   
-  # project
-  lgm <- projectRaster(lgm,
-                       res = 50,
-                       method = "bilinear",
-                       crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=km +no_defs +ellps=WGS84 +towgs84=0,0,0")
-  return(lgm)
+  lgm <- raster::subset(lgm, index) # subset raster stack of 1200 months to only austral summer
+  lgm <- raster::calc(lgm, mean) # calculate seasonal mean
+  
+  if (project == T){
+    # crop and project
+    lgm <- raster::crop(lgm, raster::extent(-180, 180, -90, -30)) # crop to southern hemisphere
+    
+    lgm <- raster::projectRaster(lgm,
+                         res = 100,
+                         method = "bilinear",
+                         crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=km +no_defs +ellps=WGS84 +towgs84=0,0,0")
+    return(lgm)
+  } else {
+    return(lgm)
+  }
 }
+
+
+
+
+
 
 # generate austral summer mean of product from CMIP historical run
 process_hist <- function(path){
