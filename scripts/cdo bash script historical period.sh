@@ -271,7 +271,7 @@ cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 # sea ice concentration
-cd /Users/home/CMIP6/CMIP/CSIRO/ACCESS-ESM1-5/historical/r1i1p1f1/SImon/siconc/gn/20191115
+cd /Users/home/CMIP6/CMIP/CSIRO/ACCESS-ESM1-5/historical/r1i1p1f1/SImon/siconc/gn/20200817
 for i in *.nc;
 do
 echo $i
@@ -282,20 +282,21 @@ done
 ### MRI-ESM2-0 ###
 ##################
 
+# mri needs remapycon to avoid weird issues with Antarctic continent
 # salinity
-cd /Users/home/CMIP6/CMIP/MRI/MRI-ESM2-0/historical/r1i1p1f1/Omon/sos/gn/20191205
+cd /Users/home/CMIP6/CMIP/MRI/MRI-ESM2-0/historical/r1i1p1f1/Omon/sos/gn/20210311
 for i in *.nc;
 do
 echo $i
-cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
+cdo remapycon,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 # temperature
-cd /Users/home/CMIP6/CMIP/MRI/MRI-ESM2-0/historical/r1i1p1f1/Omon/tos/gn/20191205
+cd /Users/home/CMIP6/CMIP/MRI/MRI-ESM2-0/historical/r1i1p1f1/Omon/tos/gn/20190904
 for i in *.nc;
 do
 echo $i
-cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
+cdo remapycon,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 # temperature sea surface height
@@ -303,7 +304,7 @@ cd /Users/home/CMIP6/CMIP/MRI/MRI-ESM2-0/historical/r1i1p1f1/Omon/zos/gn/2019120
 for i in *.nc;
 do
 echo $i
-cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
+cdo remapycon,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 # mixed layer depth
@@ -311,15 +312,15 @@ cd /Users/home/CMIP6/CMIP/MRI/MRI-ESM2-0/historical/r1i1p1f1/Omon/mlotst/gn/2019
 for i in *.nc;
 do
 echo $i
-cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
+cdo remapycon,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 # sea ice concentration
-cd /Users/home/CMIP6/CMIP/MRI/MRI-ESM2-0/historical/r1i1p1f1/SImon/siconc/gn/20191205
+cd /Users/home/CMIP6/CMIP/MRI/MRI-ESM2-0/historical/r1i1p1f1/SImon/siconc/gn/20190904
 for i in *.nc;
 do
 echo $i
-cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
+cdo remapycon,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 ##################
@@ -327,7 +328,7 @@ done
 ##################
 
 # salinity
-cd /Users/home/CMIP6/CMIP/NCAR/CESM2/historical/r1i1p1f1/Omon/sos/gr/20190308
+cd /Users/home/CMIP6/CMIP/NCAR/CESM2/historical/r1i1p1f1/Omon/sos/gn/20190308
 for i in *.nc;
 do
 echo $i
@@ -335,7 +336,7 @@ cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 # temperature
-cd /Users/home/CMIP6/CMIP/NCAR/CESM2/historical/r1i1p1f1/Omon/tos/gr/20190308
+cd /Users/home/CMIP6/CMIP/NCAR/CESM2/historical/r1i1p1f1/Omon/tos/gn/20190308
 for i in *.nc;
 do
 echo $i
@@ -343,7 +344,7 @@ cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 # sea surface height
-cd /Users/home/CMIP6/CMIP/NCAR/CESM2/historical/r1i1p1f1/Omon/zos/gr/20190308
+cd /Users/home/CMIP6/CMIP/NCAR/CESM2/historical/r1i1p1f1/Omon/zos/gn/20190308
 for i in *.nc;
 do
 echo $i
@@ -351,7 +352,7 @@ cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 # mixed layer depth
-cd /Users/home/CMIP6/CMIP/NCAR/CESM2/historical/r1i1p1f1/Omon/mlotst/gr/20190308
+cd /Users/home/CMIP6/CMIP/NCAR/CESM2/historical/r1i1p1f1/Omon/mlotst/gn/20190308
 for i in *.nc;
 do
 echo $i
@@ -359,7 +360,7 @@ cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 # sea ice concentration
-cd /Users/home/CMIP6/CMIP/NCAR/CESM2/historical/r1i1p1f1/SImon/siconc/gr/20190308
+cd /Users/home/CMIP6/CMIP/NCAR/CESM2/historical/r1i1p1f1/SImon/siconc/gn/20190308
 for i in *.nc;
 do
 echo $i
