@@ -25,4 +25,4 @@ they are not available in this repo.
 From these data we generated Austral summer climatologies
 (October-March) using a custom helper function
 [process_CMIP6.R](/R/process_CMIP6.R). These files are stored in the
-CMPI6 folder using [Git Large File Storage](https://git-lfs.com).
+CMIP6 folder using [Git Large File Storage](https://git-lfs.com).
