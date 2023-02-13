@@ -3,6 +3,7 @@
 #########################################
 
 # 2022-11-01
+# updated 2023-02-13
 
 # Characterise contemporary environmental conditions
 # These will be used to drive species distribution models
@@ -22,7 +23,7 @@ require(raster)
 # download monthly files and then combine to create seasonal mean
 
 # WOA temperature
-fn <- list.files("/Volumes/Nifty 128/ANTSIE data/WOA", full.names = T, pattern = "t")
+fn <- list.files("/Users/home/ANTSIE data/WOA", full.names = T, pattern = "t")
 temp <- stack()
 for (i in 1:length(fn)){
   foo <- brick(fn[i], varname = "t_an")
@@ -31,10 +32,11 @@ for (i in 1:length(fn)){
 }
 temp <- mean(temp)
 plot(temp)
-writeRaster(temp, "data/environmental covariates - present/temperature_025_aus_mean_wgs84", overwrite = TRUE)
+writeRaster(temp, "data/contemporary covariates/temperature_025_aus_mean_wgs84", overwrite = TRUE)
 
 # WOA salinity
-fn <- list.files("/Volumes/Nifty 128/ANTSIE data/WOA", full.names = T, pattern = "s")
+fn <- list.files("/Users/home/ANTSIE data/WOA", full.names = T, pattern = ".nc")
+fn <- fn[grepl("_s", fn)]
 sal <- stack()
 for (i in 1:length(fn)){
   foo <- brick(fn[i], varname = "s_an")
@@ -43,10 +45,10 @@ for (i in 1:length(fn)){
 }
 sal <- mean(sal)
 plot(sal)
-writeRaster(sal, "data/environmental covariates - present/salinity_025_aus_mean_wgs84", overwrite = TRUE)
+writeRaster(sal, "data/contemporary covariates/salinity_025_aus_mean_wgs84", overwrite = TRUE)
 
 # WOA mixed-layer depth
-fn <- list.files("/Volumes/Nifty 128/ANTSIE data/WOA", full.names = T, pattern = ".csv")
+fn <- list.files("/Users/home/ANTSIE data/WOA", full.names = T, pattern = ".csv")
 mld <- stack()
 for (i in 1:length(fn)){
   foo <- read_csv(fn[i], skip = 1)
@@ -56,9 +58,21 @@ for (i in 1:length(fn)){
 }
 mld <- mean(mld)
 plot(mld)
-writeRaster(mld, "data/environmental covariates - present/mixedlayerdepth_025_aus_mean_wgs84", overwrite = TRUE)
+writeRaster(mld, "data/contemporary covariates/mixedlayerdepth_025_aus_mean_wgs84", overwrite = TRUE)
 
 # Sea surface height data were extracted from SSALTO/ DUACS and
+
+# AVISO Mean sea level height above geoid
+# https://www.aviso.altimetry.fr/index.php?id=1526
+fn <- list.files("/Users/home/ANTSIE data/AVISO", full.names = T)
+ssh <- stack(fn, varname = "adt")
+ssh <- rotate(ssh)
+plot(ssh)
+ssh <- mean(ssh)
+writeRaster(ssh, "data/contemporary covariates/surfaceheight_025_aus_mean_wgs84", overwrite = TRUE)
+
+
+
 # sea ice concentration data were extracted from NSIDC.
 # From these data we calculated austral summer (October to March) climatologies.
 
@@ -84,20 +98,13 @@ nsidc_03 <- monthly_ice_average(year_min = 1979, year_max = 2020, m = 3)
 nsidc_10 <- monthly_ice_average(year_min = 1979, year_max = 2020, m = 10)
 nsidc_11 <- monthly_ice_average(year_min = 1979, year_max = 2020, m = 11)
 nsidc_12 <- monthly_ice_average(year_min = 1979, year_max = 2020, m = 12)
-# January 1988
-# December 1987
+# no data for December 1987 and January 1988 due to satellite problems
+
 sic <- stack(nsidc_01, nsidc_02, nsidc_03, nsidc_10, nsidc_11, nsidc_12)
 sic <- mean(sic)
-writeRaster(sic, "data/environmental covariates - present/seaice_025_aus_mean_wgs84", overwrite = TRUE)
+writeRaster(sic, "data/contemporary covariates/seaice_025_aus_mean_wgs84", overwrite = TRUE)
 
-# AVISO Mean sea level height above geoid
-# https://www.aviso.altimetry.fr/index.php?id=1526
-fn <- list.files("/Volumes/Nifty 128/ANTSIE data/AVISO", full.names = T)
-ssh <- stack(fn, varname = "adt")
-ssh <- rotate(ssh)
-plot(ssh)
-ssh <- mean(ssh)
-writeRaster(ssh, "data/environmental covariates - present/surfaceheight_025_aus_mean_wgs84", overwrite = TRUE)
+
 
 
 
