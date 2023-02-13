@@ -7,7 +7,7 @@
 
 # Characterise contemporary environmental conditions
 # These will be used to drive species distribution models
-# Use climatological means over Austral winter: October - March
+# Use climatological means over Austral summer: October - March
 # Find finest scale spatial resolution
 # Find longest available time series
 
