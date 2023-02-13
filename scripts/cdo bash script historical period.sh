@@ -194,12 +194,13 @@ done
 ### IPSL-CM6A-LR ###
 ####################
 
+# use rmapycon to remove latitudinal line of NAs in middle of Indian ocean
 # salinity
 cd /Users/home/CMIP6/CMIP/IPSL/IPSL-CM6A-LR/historical/r1i1p1f1/Omon/sos/gn/20180803
 for i in *.nc;
 do
 echo $i
-cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
+cdo remapycon,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 # temperature
@@ -207,7 +208,7 @@ cd /Users/home/CMIP6/CMIP/IPSL/IPSL-CM6A-LR/historical/r1i1p1f1/Omon/tos/gn/2018
 for i in *.nc;
 do
 echo $i
-cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
+cdo remapycon,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 # sea surface height
@@ -215,7 +216,7 @@ cd /Users/home/CMIP6/CMIP/IPSL/IPSL-CM6A-LR/historical/r1i1p1f1/Omon/zos/gn/2018
 for i in *.nc;
 do
 echo $i
-cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
+cdo remapycon,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 # mixed layer depth
@@ -223,7 +224,7 @@ cd /Users/home/CMIP6/CMIP/IPSL/IPSL-CM6A-LR/historical/r1i1p1f1/Omon/mlotst/gn/2
 for i in *.nc;
 do
 echo $i
-cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
+cdo remapycon,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 # sea ice concentration
@@ -231,7 +232,7 @@ cd /Users/home/CMIP6/CMIP/IPSL/IPSL-CM6A-LR/historical/r1i1p1f1/SImon/siconc/gn/
 for i in *.nc;
 do
 echo $i
-cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
+cdo remapycon,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 #####################
@@ -364,7 +365,7 @@ cd /Users/home/CMIP6/CMIP/NCAR/CESM2/historical/r1i1p1f1/SImon/siconc/gn/2019030
 for i in *.nc;
 do
 echo $i
-cdo remapbil,global_1  "$i" "${i%.nc}_bil_1x1.nc"
+cdo remapycon,global_1  "$i" "${i%.nc}_bil_1x1.nc"
 done
 
 # ends

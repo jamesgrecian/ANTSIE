@@ -102,8 +102,8 @@ batch_lgm <- function(path, var){
   # save outputs
   names <- tail(unlist(strsplit(local_files, split = "/")), 1)
   nm <- paste0(unlist(strsplit(names, split = "_"))[3:5], sep = "_", collapse = "")
-  writeRaster(rast_wgs84, paste0("data/environmental covariates - past/", var, "_", nm, "bil_1x1_aus_mean_wgs84"), overwrite = TRUE)
-  writeRaster(rast_stere, paste0("data/environmental covariates - past/", var, "_", nm, "bil_1x1_aus_mean_stere"), overwrite = TRUE)
+  writeRaster(rast_wgs84, paste0("data/CMIP6/", var, "_", nm, "bil_1x1_aus_mean_wgs84"), overwrite = TRUE)
+  writeRaster(rast_stere, paste0("data/CMIP6/", var, "_", nm, "bil_1x1_aus_mean_stere"), overwrite = TRUE)
 }
 
 # batch load data function
@@ -122,8 +122,8 @@ batch_hist <- function(path, var){
   # save outputs
   names <- tail(unlist(strsplit(local_files, split = "/")), 1)
   nm <- paste0(unlist(strsplit(names, split = "_"))[3:5], sep = "_", collapse = "")
-  writeRaster(rast_wgs84, paste0("data/environmental covariates - present/", var, "_", nm, "bil_1x1_aus_mean_wgs84"), overwrite = TRUE)
-  writeRaster(rast_stere, paste0("data/environmental covariates - present/", var, "_", nm, "bil_1x1_aus_mean_stere"), overwrite = TRUE)
+  writeRaster(rast_wgs84, paste0("data/CMIP6/", var, "_", nm, "bil_1x1_aus_mean_wgs84"), overwrite = TRUE)
+  writeRaster(rast_stere, paste0("data/CMIP6/", var, "_", nm, "bil_1x1_aus_mean_stere"), overwrite = TRUE)
 }
 
 
