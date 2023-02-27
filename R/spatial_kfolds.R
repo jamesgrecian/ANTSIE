@@ -13,7 +13,10 @@
 # return the id and append which slice for each data point
 # these numbers can then be used to segment the data for k-folds cross-validation
 
-spatial_kfolds <- function(dat, k){
+# 2023-02-27
+# add option switch for blockCV instead
+
+spatial_kfolds <- function(dat, k, type = c("pie", "blockCV")){
   
   # define the bounding box
   test <- sf::st_bbox(c(xmin = -180, xmax = 180, ymin = -90, ymax = -20)) %>% 
@@ -30,24 +33,32 @@ spatial_kfolds <- function(dat, k){
   # convert data to polar projection
   dat_sf <- dat %>% st_as_sf(coords = c("x", "y"), crs = prj)
   
-  # find which segment each data point is within
-  id_1 <- dat_sf %>% sf::st_within(test, sparse = F) # matrix of all answers
-  id_1 <- which(id_1, arr.ind = T) # store TRUE answers
-  id_1 <- id_1 %>% as_tibble() %>% arrange(row)
+  if (type == "pie"){
   
-  # in very rare cases point might be on the line
-  id_2 <- dat_sf %>% sf::st_touches(test, sparse = F)
-  id_2 <- which(id_2, arr.ind = T)
-  # st_touches will return the id of both sections - as points straddle both
-  # pull the first one
-  id_2 <- id_2 %>% as_tibble() %>% arrange(row)
-  id_2 <- id_2 %>% filter(col == unique(col)[1])
+    # find which segment each data point is within
+    id_1 <- dat_sf %>% sf::st_within(test, sparse = F) # matrix of all answers
+    id_1 <- which(id_1, arr.ind = T) # store TRUE answers
+    id_1 <- id_1 %>% as_tibble() %>% arrange(row)
   
-  # append these to the first set of indices
-  ids <- id_1 %>% bind_rows(id_2)
-  ids <- ids %>% arrange(row)
+    # in very rare cases point might be on the line
+    id_2 <- dat_sf %>% sf::st_touches(test, sparse = F)
+    id_2 <- which(id_2, arr.ind = T)
+    # st_touches will return the id of both sections - as points straddle both
+    # pull the first one
+    id_2 <- id_2 %>% as_tibble() %>% arrange(row)
+    id_2 <- id_2 %>% filter(col == unique(col)[1])
   
-  # return indices as per dismo kfold function
-  id <- ids$col
+    # append these to the first set of indices
+    ids <- id_1 %>% bind_rows(id_2)
+    ids <- ids %>% arrange(row)
+    # return indices as per dismo kfold function
+    id <- ids$col
+    
+  }
+  
+  if (type == "blockCV"){
+    capture.output(sbl <- cv_spatial(x = dat_sf, k = k))
+    id <- sbl$folds_ids
+  }
   return(id)
 }
