@@ -16,6 +16,11 @@
 # 2023-02-27
 # add option switch for blockCV instead
 
+# 2023-03-06
+# add set seed to blockCV function
+# this prevents a new set of spatial CV blocks being selected at each run of the function
+# seems to fix the issue of NA presences being predicted and causing dismo::evaluate to fail
+
 spatial_kfolds <- function(dat, k, type = c("pie", "blockCV")){
   
   # define the bounding box
@@ -57,7 +62,15 @@ spatial_kfolds <- function(dat, k, type = c("pie", "blockCV")){
   }
   
   if (type == "blockCV"){
-    capture.output(sbl <- cv_spatial(x = dat_sf, k = k))
+    capture.output(sbl <- cv_spatial(x = dat_sf,
+                      column = "PresAbs",
+                      k = k,
+                      selection = "random",
+                      iteration = 50, # can up this to 250 to ensure equal points between each block - less likely to fail?
+                      progress = F,
+                      report = F,
+                      plot = F,
+                      seed = 1)) # has setting the seed fixed the issue?
     id <- sbl$folds_ids
   }
   return(id)

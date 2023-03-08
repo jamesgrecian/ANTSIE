@@ -17,10 +17,10 @@
 
 # depends on spatial_kfolds, dismo and mgcv
 
-kfoldCV <- function(data, f, k){
+kfoldCV <- function(data, f, k, type){
   
   input <- data
-  input$K <- spatial_kfolds(input, k) #randomly allocate k groups
+  input$K <- spatial_kfolds(input, k, type) #randomly allocate k groups
   
   # output dataframe
   evaluations <- tibble(K = rep(0, k),
@@ -62,7 +62,11 @@ kfoldCV <- function(data, f, k){
     # pull out predicted presence and absences for model evaluation
     pres <- d %>% filter(PresAbs == 1) %>% pull(fit) %>% as.numeric()
     abs <- d %>% filter(PresAbs == 0) %>% pull(fit) %>% as.numeric()
-    e <- dismo::evaluate(p = pres, a = abs)
+    pres <- na.omit(pres)
+    abs <- na.omit(abs)
+    cat(length(pres))
+    cat(length(abs))
+    e <- dismo::evaluate(pres, abs)
     
     # store summary statistics
     evaluations[i, 1] <- k
