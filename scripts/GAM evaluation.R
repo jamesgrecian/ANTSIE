@@ -2,10 +2,12 @@
 ### Evaluate GAM models of habitat preference ###
 #################################################
 
-# 2022-12-24
+# 2023-02-13
+# Amended from the GAM evaluation script written at Tor 2022-12-24
+# Contemporary covariates are now processed and appended in a separate script.
 
-# given a dataframe containing all the species location data and the environmental covariates
-# run a GAM model and test the validity of it using the spatial k-folds cross validation proceedure...
+# Load in data frame containing combined species presence and absence data with covariates included
+# Run GAM models and test validity using the spatial k-folds cross validation procedure
 
 # load libraries
 require(tidyverse)
@@ -14,140 +16,358 @@ sf::sf_use_s2(FALSE)
 require(raster)
 require(mgcv)
 require(gratia)
+require(blockCV)
 
 # load spatial cross-validation functions
 source("R/spatial_kfolds.r")
 source("R/kfoldCV.r")
 source("R/rank_models.r")
-
-# Process covariates - should put this somewhere else and then just load the raster stack...
-# load environmental data
-sst <- raster("data/environmental covariates - present/temperature_025_aus_mean_wgs84")
-sal <- raster("data/environmental covariates - present/salinity_025_aus_mean_wgs84")
-ssh <- raster("data/environmental covariates - present/surfaceheight_025_aus_mean_wgs84")
-mld <- raster("data/environmental covariates - present/mixedlayerdepth_025_aus_mean_wgs84")
-sic <- raster("data/environmental covariates - present/seaice_025_aus_mean_wgs84") # sea ice is already polar projection
-sst_grad <- terrain(sst, opt = "slope", unit = "radians")
-ssh_grad <- terrain(ssh, opt = "slope", unit = "radians")
-
-# mixed layer depth raster only extends to 78.5 S
-mld <- extend(mld, sst, value = NA)
-
-# stack the covariates into single object - not sic
-covs <- stack(sst, sst_grad, sal, ssh, ssh_grad, mld)
-names(covs) <- c("sst", "sst_grad", "sal", "ssh", "ssh_grad", "mld")
-
-# project to southern hemisphere polar projection
-# need to clip to southern hemisphere first
-ext <- extent(-180, 180, -90, -40)
-covs <- crop(covs, ext)
-template <- projectRaster(from = covs, to = sic, alignOnly = T) # make a template that aligns to the sic grid but wider for whole southern ocean
-covs <- projectRaster(from = covs, to = template) 
-
-sic <- extend(sic, covs, value = 0)
-sic <- mask(sic, mask = subset(covs, 1), maskvalue = NA)
-names(sic) <- "sic"
-
-#contour <- 15
-#x <- sic
-#x[x > contour] <- contour # reclassify ice to either 15% or open water
-#x[x < contour] <- 0
-#x[is.na(x)] <- 3 # replace NA with a different value for gridDistance function
-
-# generate distance raster
-# origin is where to calculate distance from
-# omit is the land to ignore - set this as 3 as per
-# https://www.r-bloggers.com/2020/02/three-ways-to-calculate-distances-in-r/
-#d <- gridDistance(x,
-#                  origin = contour,
-#                  omit = 3)
-#d <- d/1000 # metres to km
-
-#sid <- d
-#names(sid) <- "sid"
-
-covs <- stack(covs, sic)
-
-# download some bathymetry data as an example from marmap
-# use 10 minute resolution as proxy of <0.25 degrees
-# this can be downgraded to 25 km x 25 km
-#bathy <- marmap::getNOAA.bathy(lon1 = -180,
-#                               lon2 = 180,
-#                               lat1 = -90,
-#                               lat2 = -40,
-#                               resolution = 10)
-#bat <- marmap::as.raster(bathy)
-bat <- raster("data/environmental covariates - present/depth_gr1")
-bat <- projectRaster(from = bat, to = covs)
-bat <- mask(bat, mask = subset(covs, 1), maskvalue = NA)
-names(bat) <- "bat"
-covs <- stack(covs, bat)
-plot(covs)
-
-# now can load in point data and run a habitat model or two
-# have I already calculated offset covariates based on lgm - hist?
+source("R/check_cor.R")
+source("R/filter_vars.R")
 
 # load data
-dat <- readRDS("data/combined_data_presence_absence.rds")
+dat <- readRDS("data/presence_absence_data_with_covariates.rds")
 prj <- "+proj=stere +lat_0=-90 +lat_ts=-70 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"
 
-dat[c("x", "y")] <- dat %>% st_as_sf(coords = c("lon", "lat")) %>% 
-  sf::st_set_crs(4326) %>%
-  st_transform(prj) %>%
-  st_coordinates()
+# think carefully about what's next....
 
-pulled <- raster::extract(covs, as.matrix(dat[c("x", "y")])) %>% as_tibble()
+# how to run models - are GAMs best
+# what spatial CV actually does
+# go back through this....
+# remember the Titley paper...
 
-dat <- dat %>% bind_cols(pulled)
-
-dat <- dat %>% drop_na(sst, sst_grad, sal, ssh, ssh_grad, mld, sic, bat)
-
-# check with VIF
-# sst, ssh and sic or sid are all strongly correlated (with latitude)
-faraway::vif(dat[c("sst", "sst_grad", "sal", "ssh", "ssh_grad", "mld", "bat", "sic")])
-faraway::vif(dat[c("sst_grad", "sal", "ssh", "ssh_grad", "mld", "bat", "sic")])
-faraway::vif(dat[c("sst", "sst_grad", "sal", "ssh_grad", "mld", "bat", "sic")])
-
-cor(dat$sst_grad, dat$ssh_grad)
+# go with a variation on the Titley paper
+# for each species check the total number of combinations of covariates
+# remove those that are colinear
+# then fit GAMs for each of the covariate combinations
+# use spatial CV algorithm to rank the models - select the best one for prediction?
 
 
-# need to go through all the possible combinations of 8 covariates
-# check for correlations between pairs
-# remove candidate models with correlated variables...
-# ie sst and ssh_grad but exclude sst and ssh from same model etc...
-variables <- c("sst", "sst_grad", "sal", "ssh", "ssh_grad", "mld", "sic", "bat")
 
-# check pairwise correlations
-test <- combn(variables, 2, simplify = T)
-test <- t(test) %>% as_tibble()
-# must be possible to append correlations to table then filter by cor > 0.7...?
-test <- test %>% rowwise() %>% mutate(lala = cor(dat[c(V1)], dat[c(V2)]))
-test %>% filter(lala > .7)
+myct <- dat %>% filter(group == "myctophids")
+#myct <- myct %>% filter(bat > -7000)
+#myct <- myct %>% filter(sal > 32.5)
 
-# can use all possible candidate models except those containing both sst and ssh
-
+# define maximum formula
 f <- PresAbs ~ s(sst,  bs = "cr", k = 5) + s(sst_grad,  bs = "cr", k = 5) + s(sal,  bs = "cr", k = 5) + s(ssh,  bs = "cr", k = 5) + s(ssh_grad,  bs = "cr", k = 5) + s(mld,  bs = "cr", k = 5) + s(bat,  bs = "cr", k = 5) + s(sic,  bs = "cr", k = 5)
+# calculate all possible combinations (with no interactions)
+new_f <- all_combs(f)
 
-# how many terms does the formula have?
-n.terms <- length(attr(terms(f), "term.labels"))
-new_f <- f
 
-for(i in 3:n.terms){
-  t <- combn(attr(terms(f), "term.labels"), m = i, simplify = F)
-  
-  for(j in 1:length(t)){
-    t2 <- t[[j]]
-    temp_f <- reformulate(paste(t2, collapse = " + "), response = all.vars(attr(terms(f), "variables"))[1])
-    new_f <- c(new_f, temp_f)
-  }
-}
+############################
+### Electrona antarctica ###
+############################
 
-sst_id <- grep("sst,", new_f)
-ssh_id <- grep("ssh,", new_f)
-ids <- sst_id[sst_id %in% ssh_id]
-idx <- 1:length(new_f)
-kp <- setdiff(idx, ids)
-new_f <- new_f[kp]
+E_ant <- myct %>% filter(species == "Electrona antarctica")
+check_cor(E_ant[,9:16], threshold = .7) # check for correlations greater than .7
+
+# filter formula list to remove pairs of covariates highlighted as being colinear
+rev_f <- filter_vars(new_f, "sst,", "sal,")  
+rev_f <- filter_vars(rev_f, "sst,", "ssh,")  
+rev_f <- filter_vars(rev_f, "sal,", "ssh,")  
+
+# fit GAM for each of the remaining formulas with k = 6 k-folds spatial cross validation
+ptm <- proc.time()
+output <- rank_combs(data = E_ant, f = rev_f, k = 6, type = "blockCV")
+proc.time() - ptm
+
+# rank models based on AUC and TSS
+trial <- output %>% dplyr::select(model, formula, AIC, AUC, TSS)
+trial <- trial %>%
+  unnest(c(AUC, TSS)) %>%
+  group_by(model) %>%
+  mutate(AUC = mean(AUC),
+         TSS = mean(TSS)) %>%
+  slice(1) %>%
+  ungroup() %>% 
+  arrange(desc(AUC), desc(TSS))
+trial %>% head(10)
+
+
+
+############################
+### Electrona carlsbergi ###
+############################
+
+E_car <- myct %>% filter(species == "Electrona carlsbergi")
+check_cor(E_car[,9:16], threshold = .7) # check for correlations greater than .7
+
+# filter formula list to remove pairs of covariates highlighted as being colinear
+rev_f <- filter_vars(new_f, "sst,", "sal,")  
+rev_f <- filter_vars(rev_f, "sst,", "ssh,")  
+rev_f <- filter_vars(rev_f, "sal,", "ssh,")  
+
+# fit GAM for each of the remaining formulas with k = 6 k-folds spatial cross validation
+ptm <- proc.time()
+output <- rank_combs(data = E_car, f = rev_f, k = 6, type = "blockCV")
+proc.time() - ptm
+
+# rank models based on AUC and TSS
+trial <- output %>% dplyr::select(model, formula, AUC, TSS, AIC)
+trial <- trial %>%
+  unnest(c(AUC, TSS)) %>%
+  group_by(model) %>%
+  mutate(AUC = mean(AUC),
+         TSS = mean(TSS)) %>%
+  slice(1) %>%
+  ungroup() %>% 
+  arrange(desc(AUC), desc(TSS))
+trial %>% head(10)
+
+############################
+### Gymnoscopelus bolini ###
+############################
+
+G_bol <- myct %>% filter(species == "Gymnoscopelus bolini")
+check_cor(G_bol[,9:16], threshold = .7) # check for correlations greater than .7
+
+# filter formula list to remove pairs of covariates highlighted as being colinear
+rev_f <- filter_vars(new_f, "sst,", "sal,")  
+rev_f <- filter_vars(rev_f, "sst,", "ssh,")  
+
+# fit GAM for each of the remaining formulas with k = 6 k-folds spatial cross validation
+ptm <- proc.time()
+output <- rank_combs(data = G_bol, f = rev_f, k = 6, type = "blockCV")
+proc.time() - ptm
+
+# rank models based on AUC and TSS
+trial <- output %>% dplyr::select(model, formula, AUC, TSS, AIC)
+trial <- trial %>%
+  unnest(c(AUC, TSS)) %>%
+  group_by(model) %>%
+  mutate(AUC = mean(AUC),
+         TSS = mean(TSS)) %>%
+  slice(1) %>%
+  ungroup() %>% 
+  arrange(desc(AUC), desc(TSS))
+trial %>% head(10)
+
+#############################
+### Gymnoscopelus braueri ###
+#############################
+
+G_bra <- myct %>% filter(species == "Gymnoscopelus braueri")
+check_cor(G_bra[,9:16], threshold = .7) # check for correlations greater than .7
+
+# filter formula list to remove pairs of covariates highlighted as being colinear
+rev_f <- filter_vars(new_f, "sst,", "sal,")  
+rev_f <- filter_vars(rev_f, "sst,", "ssh,")  
+
+# fit GAM for each of the remaining formulas with k = 6 k-folds spatial cross validation
+ptm <- proc.time()
+output <- rank_combs(data = G_bra, f = rev_f, k = 6, type = "blockCV")
+proc.time() - ptm
+
+# rank models based on AUC and TSS
+trial <- output %>% dplyr::select(model, formula, AUC, TSS, AIC)
+trial <- trial %>%
+  unnest(c(AUC, TSS)) %>%
+  group_by(model) %>%
+  mutate(AUC = mean(AUC),
+         TSS = mean(TSS)) %>%
+  slice(1) %>%
+  ungroup() %>% 
+  arrange(desc(AUC), desc(TSS))
+trial %>% head(10)
+
+#############################
+### Gymnoscopelus fraseri ###
+#############################
+
+G_fra <- myct %>% filter(species == "Gymnoscopelus fraseri")
+check_cor(G_fra[,9:16], threshold = .7) # check for correlations greater than .7
+
+# filter formula list to remove pairs of covariates highlighted as being colinear
+rev_f <- filter_vars(new_f, "sst,", "ssh,")  
+
+# fit GAM for each of the remaining formulas with k = 6 k-folds spatial cross validation
+ptm <- proc.time()
+output <- rank_combs(data = G_fra, f = rev_f, k = 6, type = "blockCV")
+proc.time() - ptm
+
+# rank models based on AUC and TSS
+trial <- output %>% dplyr::select(model, formula, AUC, TSS, AIC)
+trial <- trial %>%
+  unnest(c(AUC, TSS)) %>%
+  group_by(model) %>%
+  mutate(AUC = mean(AUC),
+         TSS = mean(TSS)) %>%
+  slice(1) %>%
+  ungroup() %>% 
+  arrange(desc(AUC), desc(TSS))
+trial %>% head(10)
+
+##############################
+### Gymnoscopelus nicholsi ###
+##############################
+
+G_nic <- myct %>% filter(species == "Gymnoscopelus nicholsi")
+check_cor(G_nic[,9:16], threshold = .7) # check for correlations greater than .7
+
+# filter formula list to remove pairs of covariates highlighted as being colinear
+rev_f <- filter_vars(new_f, "sst,", "sal,")  
+rev_f <- filter_vars(rev_f, "sst,", "ssh,")  
+
+# fit GAM for each of the remaining formulas with k = 6 k-folds spatial cross validation
+ptm <- proc.time()
+output <- rank_combs(data = G_nic, f = rev_f, k = 6, type = "blockCV")
+proc.time() - ptm
+
+# rank models based on AUC and TSS
+trial <- output %>% dplyr::select(model, formula, AUC, TSS, AIC)
+trial <- trial %>%
+  unnest(c(AUC, TSS)) %>%
+  group_by(model) %>%
+  mutate(AUC = mean(AUC),
+         TSS = mean(TSS)) %>%
+  slice(1) %>%
+  ungroup() %>% 
+  arrange(desc(AUC), desc(TSS))
+trial %>% head(10)
+
+###################################
+### Gymnoscopelus opisthopterus ###
+###################################
+
+G_opi <- myct %>% filter(species == "Gymnoscopelus opisthopterus")
+check_cor(G_opi[,9:16], threshold = .7) # check for correlations greater than .7
+
+# filter formula list to remove pairs of covariates highlighted as being colinear
+rev_f <- filter_vars(new_f, "sst,", "sal,")  
+rev_f <- filter_vars(rev_f, "sst,", "ssh,")  
+rev_f <- filter_vars(rev_f, "sal,", "ssh,")  
+
+# fit GAM for each of the remaining formulas with k = 6 k-folds spatial cross validation
+ptm <- proc.time()
+output <- rank_combs(data = G_opi, f = rev_f, k = 6, type = "blockCV")
+proc.time() - ptm
+
+# rank models based on AUC and TSS
+trial <- output %>% dplyr::select(model, formula, AUC, TSS, AIC)
+trial <- trial %>%
+  unnest(c(AUC, TSS)) %>%
+  group_by(model) %>%
+  mutate(AUC = mean(AUC),
+         TSS = mean(TSS)) %>%
+  slice(1) %>%
+  ungroup() %>% 
+  arrange(desc(AUC), desc(TSS))
+trial %>% head(10)
+
+################################
+### Krefftichthys anderssoni ###
+################################
+
+K_and <- myct %>% filter(species == "Krefftichthys anderssoni")
+check_cor(K_and[,9:16], threshold = .7) # check for correlations greater than .7
+
+# filter formula list to remove pairs of covariates highlighted as being colinear
+rev_f <- filter_vars(new_f, "sst,", "sal,")  
+rev_f <- filter_vars(rev_f, "sst,", "ssh,")  
+
+# fit GAM for each of the remaining formulas with k = 6 k-folds spatial cross validation
+ptm <- proc.time()
+output <- rank_combs(data = K_and, f = rev_f, k = 6, type = "blockCV")
+proc.time() - ptm
+
+# rank models based on AUC and TSS
+trial <- output %>% dplyr::select(model, formula, AUC, TSS, AIC)
+trial <- trial %>%
+  unnest(c(AUC, TSS)) %>%
+  group_by(model) %>%
+  mutate(AUC = mean(AUC),
+         TSS = mean(TSS)) %>%
+  slice(1) %>%
+  ungroup() %>% 
+  arrange(desc(AUC), desc(TSS))
+trial %>% head(10)
+
+#############################
+### Protomyctophum bolini ###
+#############################
+
+P_bol <- myct %>% filter(species == "Protomyctophum bolini")
+check_cor(P_bol[,9:16], threshold = .7) # check for correlations greater than .7
+
+# filter formula list to remove pairs of covariates highlighted as being colinear
+rev_f <- filter_vars(new_f, "sst,", "sal,")  
+rev_f <- filter_vars(rev_f, "sst,", "ssh,")  
+
+# fit GAM for each of the remaining formulas with k = 6 k-folds spatial cross validation
+ptm <- proc.time()
+output <- rank_combs(data = P_bol, f = rev_f, k = 6, type = "blockCV")
+proc.time() - ptm
+
+# rank models based on AUC and TSS
+trial <- output %>% dplyr::select(model, formula, AUC, TSS, AIC)
+trial <- trial %>%
+  unnest(c(AUC, TSS)) %>%
+  group_by(model) %>%
+  mutate(AUC = mean(AUC),
+         TSS = mean(TSS)) %>%
+  slice(1) %>%
+  ungroup() %>% 
+  arrange(desc(AUC), desc(TSS))
+trial %>% head(10)
+
+###############################
+### Protomyctophum tenisoni ###
+###############################
+
+### Fails - only 143 observations ###
+
+P_ten <- myct %>% filter(species == "Protomyctophum tenisoni")
+check_cor(P_ten[,9:16], threshold = .7) # check for correlations greater than .7
+
+# filter formula list to remove pairs of covariates highlighted as being colinear
+rev_f <- filter_vars(new_f, "sst,", "ssh,")  
+
+# fit GAM for each of the remaining formulas with k = 6 k-folds spatial cross validation
+ptm <- proc.time()
+output <- rank_combs(data = P_ten, f = rev_f, k = 6, type = "blockCV")
+proc.time() - ptm
+
+# rank models based on AUC and TSS
+trial <- output %>% dplyr::select(model, formula, AUC, TSS, AIC)
+trial <- trial %>%
+  unnest(c(AUC, TSS)) %>%
+  group_by(model) %>%
+  mutate(AUC = mean(AUC),
+         TSS = mean(TSS)) %>%
+  slice(1) %>%
+  ungroup() %>% 
+  arrange(desc(AUC), desc(TSS))
+trial %>% head(10)
+
+
+
+###
+###
+###
+
+
+
+
+
+""        
+[11] "Euphausia superba"               "Salpidae"                        
+
+
+"Abraliopsis gilchristi"          "Alluroteuthis antarcticus"       "Bathyteuthis abyssicola"        
+[16] "Batoteuthis skolops"             "Slosarczykovia circumantarctica" "Galiteuthis glacialis"           "Galiteuthis suhmi"               "Gonatus antarcticus"            
+[21] "Grimpoteuthis megaptera"         "Histioteuthis atlantica"         "Histioteuthis eltaninae"         "Histioteuthis miranda"           "Illex argentinus"               
+[26] "Kondakovia longimana"            "Loligo gahi"                     "Lycoteuthis lorigera"            "Martialia hyadesi"               "Mastigoteuthis psychrophila"    
+[31] "Mesonychoteuthis hamiltoni"      "Parateuthis tunicata"            "Psychroteuthis glacialis"        "Semirossia patagonica"           "Taningia danae"                 
+[36] "Teuthowenia pellucida"           "Todarodes filippovae"            "Moroteuthis robsoni"             "Moroteuthis ingens"              "Chiroteuthis veranyi"           
+[41] "Moroteuthis knipovitchi"  
+
+
+
+
+
+
+
+
 
 # so come up with a way to generate all combinations and then filter them to exclude sst and ssh combos
 
@@ -238,9 +458,24 @@ myct <- dat %>% filter(group == "myctophids")
 
 # fit maximum GAM to each species
 # then do k-folds cross validation to select covariates
+
+ptm <- proc.time()
 E_ant <- myct %>% filter(species == "Electrona antarctica")
 f <- PresAbs ~ s(sst,  bs = "cr", k = 5) + s(sal,  bs = "cr", k = 5) + s(ssh,  bs = "cr", k = 5) + s(mld,  bs = "cr", k = 5) + s(bat,  bs = "cr", k = 5) + s(sic,  bs = "cr", k = 5)
 output <- rank_combs(E_ant, f, k = 6)
+proc.time() - ptm
+
+trial <- output %>% dplyr::select(model, formula, AIC, AUC, TSS)
+trial <- trial %>%
+  unnest(c(AUC, TSS)) %>%
+  group_by(model) %>%
+  mutate(AUC = mean(AUC),
+         TSS = mean(TSS)) %>%
+  slice(1) %>%
+  ungroup() %>% 
+  arrange(desc(AUC), desc(TSS))
+
+
 
 # want to minimise AIC, maximise the AUC and TSS
 trial4 <- output %>% dplyr::select(model, formula, AIC, AUC, TSS)
