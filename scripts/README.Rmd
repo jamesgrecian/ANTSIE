@@ -1,0 +1,26 @@
+---
+output:
+  md_document:
+    variant: markdown_github
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "README-"
+)
+```
+
+# Scripts
+
+## Observations
+
+Data on the location of observed species of interest are taken from published studies on myctophids, krill, salps and cephalopods and combined using the [Process species presence data.R](scripts/Process species presence data.R) script.
+
+Random background points are generated using the `buffered_points.R` [function](R/buffered_points.R) and combined using [combine presences and absences.R](scripts/combine presences and absences.R)
+
+Contemporary environmental covariates were processed using [Process contemporary covariates.R](R/Process contemporary covariates.R) and then matched to observation locations using [Append covariates to presence absence data.R](Append covariates to presence absence data.R)
+
