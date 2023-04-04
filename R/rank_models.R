@@ -16,7 +16,11 @@ rank_models <- function(data, f, k, type){
   n.terms <- length(attr(terms(f), "term.labels"))
   
   # first run full model
-  m <- gam(f, data, family = binomial, method = "REML", select = T)
+  m <- gam(f,
+           data,
+           family = binomial,
+           select = T,
+           method = "REML")
   foo <- kfoldCV(data, f, k, type)
   
   # create output tibble
@@ -30,7 +34,11 @@ rank_models <- function(data, f, k, type){
   # then loop through combination of terms, only remove one each time
   for(i in 1:n.terms){
     new_f <- formula(terms.formula(drop.terms(terms(f), dropx = i, keep.response = T)))
-    m <- gam(new_f, data, family = binomial, method = "REML", select = T)
+    m <- gam(new_f,
+             data,
+             family = binomial,
+             select = T,
+             method = "REML")
     foo <- kfoldCV(data, new_f, k, type)
     
     # append results to output dataframe
@@ -51,7 +59,11 @@ rank_models <- function(data, f, k, type){
 rank_combs <- function(data, f, k, type){
 
   # first run full model
-  m <- gam(f[[1]], data, family = binomial, method = "REML", select = T)
+  m <- gam(f[[1]],
+           data,
+           family = binomial,
+           select = T,
+           method = "REML")
   foo <- kfoldCV(data, f[[1]], k, type)
   
   # create output tibble
@@ -64,7 +76,11 @@ rank_combs <- function(data, f, k, type){
   
   # then loop through combination of terms
   for(j in 2:length(f)){
-    m <- gam(f[[j]], data, family = binomial, method = "REML", select = T)
+    m <- gam(f[[j]],
+             data,
+             family = binomial,
+             select = T,
+             method = "REML")
     foo <- kfoldCV(data, f[[j]], k, type)
     
     # append results to output dataframe
