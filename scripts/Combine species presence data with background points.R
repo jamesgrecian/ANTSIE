@@ -1,9 +1,9 @@
-################################################################################
-### Combine species presence data with pseudo absences for habitat modelling ###
-################################################################################
+##################################################################################
+### Combine species presence data with background points for habitat modelling ###
+##################################################################################
 
 # 2022-03-09
-# updated 2023-02-13
+# updated 2023-04-05
 
 # load libraries
 require(tidyverse)
@@ -23,24 +23,26 @@ dat[c("x", "y")] <- dat %>% st_as_sf(coords = c("lon", "lat")) %>%
   st_transform(prj) %>%
   st_coordinates()
 
-# generate an equal number of pseudo absences
+# generate 10000 background points for each species
 source("R/pseudoAbs.R")
 pabs <- pseudoAbs(x_min = -180,
                   x_max = 180,
                   y_min = -80,
                   y_max = -40,
                   projection = prj,
-                  n = nrow(dat))
+                  n = 10000 * length(unique(dat$species)))
 
 # create dummy dataframe replicating structure of original data
 # replace locations with pseudo absences coordinates
-pseudo <- dat
+#pseudo <- dat
+pseudo <- dat %>% group_by(group, species) %>% dplyr::select(group, species, date) %>% slice(rep(1, 10000)) %>% ungroup
+pseudo$date <- NA
 pseudo[c("x", "y")] <- pabs
-
 pseudo[c("lon", "lat")] <- pseudo %>% st_as_sf(coords = c("x", "y")) %>% 
   sf::st_set_crs(prj) %>%
   st_transform(4326) %>%
   st_coordinates()
+pseudo <- pseudo %>% dplyr::select("group", "species", "date", "lon", "lat", "x", "y")
 
 # define 1s and 0s
 dat$PresAbs <- 1
@@ -55,6 +57,6 @@ ggplot() +
   geom_point(aes(x = x, y = y, colour = factor(PresAbs)), data = dat)
 
 # save outputted data frame
-saveRDS(dat, "data/presence_absence_data.rds")
+saveRDS(dat, "data/presence_absence_data_10k.rds")
 
 # ends

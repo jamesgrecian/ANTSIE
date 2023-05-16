@@ -55,7 +55,7 @@ covs <- stack(covs, bat)
 plot(covs)
 
 # load species presence data
-dat <- readRDS("data/combined_data_presence_absence.rds")
+dat <- readRDS("data/presence_absence_data_10k.rds")
 prj <- "+proj=stere +lat_0=-90 +lat_ts=-70 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"
 
 dat[c("x", "y")] <- dat %>% st_as_sf(coords = c("lon", "lat")) %>% 
@@ -73,8 +73,12 @@ dat <- dat %>% bind_cols(pulled)
 dat <- dat %>% drop_na(sst, sst_grad, sal, ssh, ssh_grad, mld, sic, bat)
 
 # output to file
-saveRDS(dat, "data/presence_absence_data_with_covariates.rds")
+saveRDS(dat, "data/presence_absence_data_10k_with_covariates_2023-04-05.rds")
 
+# also output the covariates for use in spatial predictions
+saveRDS(covs, "data/covariate_stack.rds")
+
+# ends
 
 
 # What to do with sea ice concentration

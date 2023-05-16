@@ -15,6 +15,6 @@ filter_vars <- function(f, V1, V2){
   idx <- 1:length(f) # dummy index for length of function
   kp <- setdiff(idx, ids) # take difference to give indices of those we keep
   out <- f[kp] # subset formula by indices of those we want to keep
-  cat("dropped", length(f) - length(out), "variable sets")
+  cat("dropped", length(f) - length(out), "variable sets", "\n")
   return(out)
 }
