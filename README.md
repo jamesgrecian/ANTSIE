@@ -6,8 +6,8 @@ public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostat
 
 # ANTSIE <img src="logo_small.png" align="right" height="200" />
 
-This repo contains code for the analysis of Antarctic prey distributions
-as part of the ANTSIE project
+This repo contains code for the analysis of Southern Ocean mesopelagic
+distributions as part of the ANTSIE project
 
 For more details of the project see:
 <https://antsie.webspace.durham.ac.uk>
