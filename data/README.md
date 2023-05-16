@@ -6,14 +6,16 @@
 
 Environmental data for the LGM, midHolocene and historical periods were
 download from the ESGF
-[portal](https://esgf-node.llnl.gov/search/cmip6/) using the `rcmip6`
-package in `R`.
+[portal](https://esgf-node.llnl.gov/search/cmip6/) with the `rcmip6`
+package using the [Download CMIP6
+script](scripts/Download%20CMIP6%20script.R).
 
 Monthly mean sea surface salinity (sos), sea surface temperature (tos),
 sea surface height (zos), sea ice concentration (siconc) and mixed layer
 depth (mlotst) climatologies were downloaded on the native grid (gn) and
 then regularised to a 1x1 degree grid using [Climate Data
-Operators](https://code.mpimet.mpg.de/projects/cdo) bash scripts.
+Operators](https://code.mpimet.mpg.de/projects/cdo) bash
+[scripts](scripts/).
 
 The outputed .nc files contain monthly global climatologies at a 1x1
 degree spatial resolution. Historical period data run from 1850 to 2014
@@ -25,9 +27,10 @@ final 100 years of data using bash script
 they are not available in this repo.
 
 From these data we generated Austral summer climatologies
-(October-March) using a custom helper function
-[process_CMIP6.R](/R/process_CMIP6.R). These files are stored in the
-CMIP6 folder using [Git Large File Storage](https://git-lfs.com).
+(October-March) using [Process CMIP6
+products.R](scripts/Process%20CMIP6%20products.R). These files are
+stored in the CMIP6 folder using [Git Large File
+Storage](https://git-lfs.com).
 
 ## Contemporary covariates
 
