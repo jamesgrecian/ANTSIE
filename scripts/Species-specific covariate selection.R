@@ -51,7 +51,7 @@ form <- PresAbs ~ s(sst, bs = "cr", k = 5) + s(sst_grad, bs = "cr", k = 5) + s(s
 new_f <- all_combs(form, min.terms = 3) # calculate all possible combinations between 3 and 8 (with no interactions)
 
 # initialise empty list to store results in
-tidy_results_new <- list()
+tidy_results <- list()
 
 ################################
 ###  1. Electrona antarctica ###
@@ -67,7 +67,7 @@ rev_f <- filter_vars(rev_f, "sal,", "ssh,")
 length(rev_f)
 
 # fit all models in rev_f to k folds and store results as nested tibble
-tidy_results_new[[1]] <- tidy_models(spatial_blocks = folds[[1]], formula_list = rev_f)
+tidy_results[[1]] <- tidy_models(spatial_blocks = folds[[1]], formula_list = rev_f)
 
 ################################
 ###  2. Electrona carlsbergi ###
@@ -82,7 +82,7 @@ rev_f <- filter_vars(rev_f, "sst,", "ssh,")
 length(rev_f)
 
 # fit all models in rev_f to k folds and store results as nested tibble
-tidy_results_new[[2]] <- tidy_models(spatial_blocks = folds[[2]], formula_list = rev_f)
+tidy_results[[2]] <- tidy_models(spatial_blocks = folds[[2]], formula_list = rev_f)
 
 ################################
 ###  3. Gymnoscopelus bolini ###
