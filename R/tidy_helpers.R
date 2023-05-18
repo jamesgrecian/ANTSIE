@@ -10,7 +10,7 @@
 # function to fit gam to each fold
 # see https://www.tidymodels.org/learn/statistics/bootstrap/#bootstrapping-models
 fit_gam <- function(splits) {
-  m <- gam(f, data = analysis(splits), family = "binomial")
+  m <- gam(f, data = analysis(splits), family = "binomial", method = "REML")
 }
 
 # function to fit gam to each fold using analysis data
@@ -18,7 +18,7 @@ fit_gam <- function(splits) {
 # see https://spatialsample.tidymodels.org/articles/spatialsample.html
 pred_gam <- function(splits){
   # identify the assessment set
-  m <- gam(f, data = analysis(splits), family = "binomial")
+  m <- gam(f, data = analysis(splits), family = "binomial", method = "REML")
   holdout <- assessment(splits)
   tibble::tibble(
     PresAbs = holdout$PresAbs, 

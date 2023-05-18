@@ -3,7 +3,7 @@
 ############################################
 
 # 2023-04-11
-# updated 2023-05-20
+# updated 2023-05-18
 
 # Find the optimal number of environmental covariates to describe the habitat of each species
 # Create candidate covariate sets for all possible combinations of covariates between 3 and 8
@@ -47,7 +47,7 @@ dat <- dat |> filter(!species %in% drop_id)
 folds <- readRDS("data/folds.rds")
 
 # define maximum formula
-form <- PresAbs ~ s(sst, bs = "cr", k = 5) + s(sst_grad, bs = "cr", k = 5) + s(sal, bs = "cr", k = 5) + s(ssh, bs = "cr", k = 5) + s(ssh_grad, bs = "cr", k = 5) + s(mld, bs = "cr", k = 5) + s(bat, bs = "cr", k = 5) + s(sic, bs = "cr", k = 5)
+form <- PresAbs ~ s(sst, bs = "ts", k = 5) + s(sst_grad, bs = "ts", k = 5) + s(sal, bs = "ts", k = 5) + s(ssh, bs = "ts", k = 5) + s(ssh_grad, bs = "ts", k = 5) + s(mld, bs = "ts", k = 5) + s(bat, bs = "ts", k = 5) + s(sic, bs = "ts", k = 5)
 new_f <- all_combs(form, min.terms = 3) # calculate all possible combinations between 3 and 8 (with no interactions)
 
 # initialise empty list to store results in
