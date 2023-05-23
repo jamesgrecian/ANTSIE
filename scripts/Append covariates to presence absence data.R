@@ -72,8 +72,17 @@ dat <- dat %>% bind_cols(pulled)
 # drop NAs
 dat <- dat %>% drop_na(sst, sst_grad, sal, ssh, ssh_grad, mld, sic, bat)
 
+# drop cephalopod species that weren't included in the Xavier paper
+drop_id <- c("Illex argentinus", "Lycoteuthis lorigera", "Teuthowenia pellucida",
+             "Mastigoteuthis psychrophila", "Abraliopsis gilchristi", "Semirossia patagonica",
+             "Batoteuthis skolops", "Chiroteuthis veranyi", "Galiteuthis suhmi",
+             "Grimpoteuthis megaptera", "Histioteuthis miranda", "Moroteuthis knipovitchi",
+             "Parateuthis tunicata", "Taningia danae")
+dat <- dat |> filter(!species %in% drop_id)
+
+
 # output to file
-saveRDS(dat, "data/presence_absence_data_10k_with_covariates_2023-04-05.rds")
+saveRDS(dat, "data/presence_absence_data_10k_with_covariates_2023-05-23.rds")
 
 # also output the covariates for use in spatial predictions
 saveRDS(covs, "data/covariate_stack.rds")
