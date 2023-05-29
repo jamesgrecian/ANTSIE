@@ -82,6 +82,11 @@ length(rev_f)
 # run manual selection avoiding using `fit_resamples`
 tidy_results[[2]] <- manual_gam_selection(rev_f, folds[[2]])
 
+
+tidy_results[[2]] |> arrange(desc(mean))
+
+rev_f[[79]]
+
 ################################
 ###  3. Gymnoscopelus bolini ###
 ################################
