@@ -4,6 +4,7 @@
 
 # 2023-04-10
 # modified 2023-04-17 to make PresAbs a factor
+# modified 2023-05-29 to include weights
 
 # More info on package here: https://spatialsample.tidymodels.org/index.html
 # spatialsample::spatial_block_cv function seems to work similarlily to block_CV
@@ -28,18 +29,13 @@ require(sf)
 prj <- "+proj=stere +lat_0=-90 +lat_ts=-70 +lon_0=0 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"
 
 # load data
-dat <- readRDS("data/presence_absence_data_10k_with_covariates_2023-04-05.rds")
+dat <- readRDS("data/presence_absence_data_10k_with_covariates_2023-05-23.rds")
 
 # make PresAbs a factor
 dat <- dat |> mutate(PresAbs = factor(PresAbs))
 
-# only consider cephalopod species included in the Xavier paper
-drop_id <- c("Illex argentinus", "Lycoteuthis lorigera", "Teuthowenia pellucida",
-             "Mastigoteuthis psychrophila", "Abraliopsis gilchristi", "Semirossia patagonica",
-             "Batoteuthis skolops", "Chiroteuthis veranyi", "Galiteuthis suhmi",
-             "Grimpoteuthis megaptera", "Histioteuthis miranda", "Moroteuthis knipovitchi",
-             "Parateuthis tunicata", "Taningia danae")
-dat <- dat |> filter(!species %in% drop_id)
+# create dummy weights column to pass to recipes later
+dat <- dat |> mutate(cwts = hardhat::importance_weights(NA))
 
 # make sf object
 dat_sf <- dat |> st_as_sf(coords = c("x", "y"), crs = prj)
@@ -116,6 +112,6 @@ folds[[k]] <- block_folds
 #dev.off()
 
 # save folds object
-saveRDS(folds, "data/folds.rds")
+saveRDS(folds, "data/folds_weights.rds")
 
 # ends
